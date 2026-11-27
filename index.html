@@ -683,6 +683,9 @@
               <textarea name="note" rows="2" class="mt-1.5 w-full rounded-xl border border-wood-100 bg-white px-4 py-3 outline-none focus:border-ember-500" placeholder="例如：醬料多一份、不要香菜"></textarea></label>
           </fieldset>
 
+          <!-- 防機器人欄位（真人看不到，請勿移除） -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+
           <!-- 付款方式 -->
           <fieldset>
             <legend class="mb-3 font-bold">付款方式</legend>
@@ -836,6 +839,11 @@
   ];
 
   const SHIPPING_FEE = 160, FREE_SHIP = 1000;
+
+  /* ---------- 訂單串接 Google Sheet（Google Apps Script） ----------
+     部署 gas/Code.gs 後，把「網頁應用程式網址」貼在下面（以 /exec 結尾）。
+     留空時網站維持示範模式：可以結帳，但訂單不會送出。 */
+  const ORDER_API_URL = '';
 
   /* ---------- 共用：產品卡片 ---------- */
   function chilis(n) {
@@ -1214,30 +1222,71 @@
     }
     const fd = new FormData(form), m = getMethod();
     const btn = $('#submitOrder');
+    const resetBtn = () => { btn.disabled = false; btn.innerHTML = '<i data-lucide="check" class="h-5 w-5"></i>確認送出訂單'; refreshIcons(); };
     btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i>訂單處理中…'; refreshIcons();
 
-    setTimeout(() => {
-      const total = cartSubtotal() + shippingFee();
-      const no = 'MS' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + String(Math.floor(Math.random() * 9000) + 1000);
-      const storeName = STORES.find(s => s.id === fd.get('store'))?.name;
-      $('#successNo').textContent = no;
+    const storeName = STORES.find(s => s.id === fd.get('store'))?.name;
+    const order = {
+      requestId: checkoutRequestId,
+      method: m, store: fd.get('store'), time: fd.get('time'), people: fd.get('people'),
+      city: fd.get('city'), address: fd.get('address'), date: fd.get('date'),
+      name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), note: fd.get('note'),
+      pay: fd.get('pay'), website: fd.get('website'),
+      items: [...cart].map(([id, qty]) => ({ id, name: PRODUCTS[id].name, qty })),
+      clientTotal: cartSubtotal() + shippingFee(),
+    };
+
+    submitOrder(order).then(res => {
+      $('#successNo').textContent = res.orderNo;
       $('#successMethod').textContent = METHOD_LABEL[m];
       $('#successInfo').textContent = m === 'delivery'
         ? `${fd.get('city')}${fd.get('address')}（${fd.get('date') || '盡快出貨'}）`
         : `${storeName}・${fd.get('time')}${m === 'dine' ? '・' + fd.get('people') : ''}`;
       $('#successPay').textContent = fd.get('pay');
-      $('#successTotal').textContent = fmt(total);
+      $('#successTotal').textContent = fmt(res.total);
+      if (res.emailSent) showToast(`訂單確認信已寄到 ${order.email}`);
 
       cart.clear(); saveCart(); updateCartUI();
       form.reset(); syncMethodFields();
       populateCheckoutSelects();
+      checkoutRequestId = newRequestId();
 
       $('#checkoutStepForm').classList.add('hidden');
       $('#checkoutStepSuccess').classList.remove('hidden');
-      btn.disabled = false; btn.innerHTML = '<i data-lucide="check" class="h-5 w-5"></i>確認送出訂單';
-      refreshIcons();
-    }, 900);
+      resetBtn();
+    }).catch(err => {
+      // 送出失敗：保留購物車與填寫內容，讓顧客可以直接重送
+      showToast(err.message || '訂單送出失敗，請稍後再試。', 'error');
+      resetBtn();
+    });
   });
+
+  /* ---------- 送出訂單（Google Apps Script） ---------- */
+  const newRequestId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  let checkoutRequestId = newRequestId();   // 同一筆訂單重送時沿用，後端會自動去除重複
+
+  async function submitOrder(order) {
+    if (!ORDER_API_URL) {
+      // 示範模式：尚未設定後端網址
+      await new Promise(r => setTimeout(r, 900));
+      const no = 'MS' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + String(Math.floor(Math.random() * 900) + 100);
+      return { ok: true, orderNo: no, total: order.clientTotal };
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    let res;
+    try {
+      // 用 text/plain 送出，避免跨網域預檢請求（Apps Script 不支援 OPTIONS）
+      const r = await fetch(ORDER_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(order), signal: ctrl.signal });
+      res = await r.json();
+    } catch (e) {
+      throw new Error(e.name === 'AbortError' ? '連線逾時，請檢查網路後再按一次送出（不會重複下單）。' : '無法連線到訂單系統，請檢查網路後再試一次。');
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res || !res.ok) throw new Error((res && res.error) || '訂單送出失敗，請稍後再試。');
+    return res;
+  }
 
   /* ---------- 隱私權政策 / 服務條款 ---------- */
   const POLICIES = {
