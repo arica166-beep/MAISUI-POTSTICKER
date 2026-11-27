@@ -6,6 +6,17 @@
   <title>麥穗鍋貼所 MAISUI｜金黃酥脆，傳承手藝的極致美味</title>
   <meta name="description" content="麥穗鍋貼所：台灣在地豬肉、每日現包、黃金煎脆比例。線上點餐、冷凍禮盒宅配、門市據點資訊。" />
 
+  <!-- PWA：可安裝到手機桌面、離線瀏覽 -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#2c1a10" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="麥穗鍋貼" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
   <!-- Fonts：典雅標題 Noto Serif TC ／ 內文 Noto Sans TC -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1410,6 +1421,11 @@
   updateCartUI();
   updateHeader();
   refreshIcons();
+
+  /* ---------- PWA：註冊 Service Worker ---------- */
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service Worker 註冊失敗', err)));
+  }
   </script>
 
   <!-- ============================================================
