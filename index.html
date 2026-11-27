@@ -63,6 +63,35 @@
     .booking-fab svg { width: 1.25rem; height: 1.25rem; }
     @media (max-width: 480px) { .booking-fab { right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); padding: .8rem 1.1rem; font-size: .9rem; } }
     @media (prefers-reduced-motion: reduce) { .booking-fab { transition: none; } .booking-fab:hover { transform: none; } }
+    /* 街景動畫：人來人往 */
+    .street { position: relative; height: 300px; overflow: hidden; background: linear-gradient(#fbf6ee 0%, #f4ebdd 72%, #e9dcc6 72%, #e9dcc6 76%, #c4a27f 76%, #b08b66 100%); }
+    .street-caption { position: absolute; left: 50%; top: 1.25rem; transform: translateX(-50%); width: max-content; max-width: calc(100% - 2rem); text-align: center; font-family: "Noto Serif TC", serif; color: rgb(90 58 34); letter-spacing: .3em; font-size: .8rem; z-index: 4; }
+    .street-caption b { display: block; font-size: 1.15rem; letter-spacing: .15em; color: rgb(44 26 16); margin-top: .15rem; }
+    .street-shop { position: absolute; bottom: 24%; left: 50%; width: 300px; transform: translateX(-50%); z-index: 1; }
+    .street-steam path { animation: steam 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; opacity: 0; }
+    .street-steam path:nth-child(2) { animation-delay: 1s; } .street-steam path:nth-child(3) { animation-delay: 2.1s; }
+    @keyframes steam { 0% { opacity: 0; transform: translateY(6px) scaleY(.7); } 30% { opacity: .55; } 100% { opacity: 0; transform: translateY(-16px) scaleY(1.15); } }
+    .street-lane { position: absolute; inset: 0; pointer-events: none; }
+    .street-lane.back  { z-index: 2; }
+    .street-lane.front { z-index: 3; }
+    .walker { position: absolute; left: -80px; animation: walk-across linear infinite; }
+    .walker.rtl { animation-direction: reverse; }
+    .walker.rtl svg { transform: scaleX(-1); }
+    @keyframes walk-across { from { left: -80px; } to { left: calc(100% + 80px); } }
+    .walker .bob { animation: bob var(--step, .5s) ease-in-out infinite alternate; }
+    @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+    .walker .limb { transform-origin: 20px 52px; animation: swing calc(var(--step, .5s) * 2) ease-in-out infinite alternate; }
+    .walker .limb.b { animation-delay: calc(var(--step, .5s) * -2); }
+    .walker .arm { transform-origin: 20px 23px; animation: swing calc(var(--step, .5s) * 2) ease-in-out infinite alternate-reverse; }
+    .walker .arm.b { animation-delay: calc(var(--step, .5s) * -2); }
+    @keyframes swing { from { transform: rotate(24deg); } to { transform: rotate(-24deg); } }
+    .waiter { position: absolute; }
+    .waiter .bob { animation: idle 2.4s ease-in-out infinite alternate; }
+    @keyframes idle { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
+    @media (max-width: 640px) { .street { height: 270px; } .street-shop { width: 230px; } .street-caption { top: 1rem; font-size: .7rem; } .street-caption b { font-size: 1rem; } }
+    @media (prefers-reduced-motion: reduce) {
+      .street *, .street *::before { animation-play-state: paused !important; }
+    }
   </style>
 </head>
 
@@ -166,6 +195,39 @@
       <a href="#story" class="absolute bottom-10 left-1/2 -translate-x-1/2 text-wood-500 animate-bounce" aria-label="向下捲動">
         <i data-lucide="chevrons-down" class="h-6 w-6"></i>
       </a>
+    </section>
+
+    <!-- ============================================================
+         STREET SCENE：人來人往的動畫街景
+         ============================================================ -->
+    <section class="street" aria-label="店門口人來人往的街景動畫">
+      <p class="street-caption">巷口的日常<b>人來人往，都為這一口金黃</b></p>
+      <svg class="street-shop" viewBox="0 0 300 150" aria-hidden="true">
+        <g class="street-steam" fill="none" stroke="#c4a27f" stroke-width="3" stroke-linecap="round">
+          <path d="M120 22 q-6 -8 0 -16 q6 -8 0 -16"/>
+          <path d="M150 22 q-6 -8 0 -16 q6 -8 0 -16"/>
+          <path d="M180 22 q-6 -8 0 -16 q6 -8 0 -16"/>
+        </g>
+        <rect x="20" y="40" width="260" height="110" rx="4" fill="#5a3a22"/>
+        <rect x="40" y="28" width="220" height="24" rx="3" fill="#2c1a10"/>
+        <text x="150" y="45" text-anchor="middle" fill="#f6b27a" font-size="14" font-family="Noto Serif TC, serif" font-weight="700" letter-spacing="4">麥穗鍋貼所</text>
+        <g>
+          <path d="M14 56 h272 l-8 20 h-256 z" fill="#e5772a"/>
+          <path d="M48 56 h24 l-2 20 h-24 z M96 56 h24 l-1 20 h-24 z M144 56 h24 v20 h-24 z M192 56 h24 l1 20 h-24 z M240 56 h24 l2 20 h-24 z" fill="#fbf6ee"/>
+        </g>
+        <rect x="38" y="86" width="96" height="50" rx="3" fill="#f0924a" opacity=".85"/>
+        <rect x="44" y="92" width="84" height="38" rx="2" fill="#fde7c8"/>
+        <circle cx="66" cy="117" r="9" fill="#e5772a"/><circle cx="88" cy="117" r="9" fill="#e5772a"/><circle cx="110" cy="117" r="9" fill="#e5772a"/>
+        <rect x="58" y="124" width="60" height="5" rx="2" fill="#2c1a10"/>
+        <rect x="170" y="84" width="58" height="66" rx="3" fill="#2c1a10"/>
+        <rect x="176" y="90" width="46" height="60" fill="#fbe1b8" opacity=".9"/>
+        <circle cx="214" cy="122" r="2.5" fill="#5a3a22"/>
+        <rect x="240" y="92" width="26" height="40" rx="2" fill="#fbf6ee"/>
+        <text x="253" y="108" text-anchor="middle" fill="#c95f18" font-size="9" font-family="Noto Sans TC, sans-serif" font-weight="700">營業</text>
+        <text x="253" y="122" text-anchor="middle" fill="#5a3a22" font-size="8" font-family="Noto Sans TC, sans-serif">中</text>
+      </svg>
+      <div class="street-lane back" id="laneBack" aria-hidden="true"></div>
+      <div class="street-lane front" id="laneFront" aria-hidden="true"></div>
     </section>
 
     <!-- ============================================================
@@ -1233,8 +1295,69 @@
   }, { threshold: 0.5 });
   $$('.counter').forEach(c => counterIO.observe(c));
 
+  /* ---------- 街景：人來人往 ---------- */
+  function renderStreet() {
+    const back = $('#laneBack'), front = $('#laneFront');
+    if (!back || !front) return;
+    const person = ({ hair, top, pants, bag, skirt }) => `
+      <svg viewBox="0 0 40 90" width="100%" height="100%" overflow="visible">
+        <g class="bob">
+          <g class="limb a"><path d="M20 52 L20 86" stroke="${pants}" stroke-width="6" stroke-linecap="round"/></g>
+          <g class="limb b"><path d="M20 52 L20 86" stroke="${pants}" stroke-width="6" stroke-linecap="round" opacity=".85"/></g>
+          <g class="arm b"><path d="M20 23 L20 46" stroke="${top}" stroke-width="5" stroke-linecap="round" opacity=".8"/></g>
+          ${skirt ? `<path d="M12 44 L28 44 L31 62 L9 62 Z" fill="${pants}"/>` : ''}
+          <rect x="13" y="19" width="14" height="${skirt ? 27 : 35}" rx="6" fill="${top}"/>
+          <circle cx="20" cy="10" r="7.5" fill="#e8c4a0"/>
+          <path d="M12.5 10 a7.5 7.5 0 0 1 15 0 q-3 -4 -7.5 -3.5 q-4.5 -.5 -7.5 3.5z" fill="${hair}"/>
+          <g class="arm a">
+            <path d="M20 23 L20 46" stroke="${top}" stroke-width="5" stroke-linecap="round"/>
+            ${bag ? `<rect x="15" y="45" width="10" height="11" rx="1.5" fill="#e5772a"/><path d="M17 45 q3 -4 6 0" fill="none" stroke="#c95f18" stroke-width="1.2"/>` : ''}
+          </g>
+        </g>
+      </svg>`;
+    const C = {
+      hair:  ['#2c1a10', '#43291a', '#1f1a17', '#8a5f3c', '#9b9b9b'],
+      top:   ['#e5772a', '#4b5d6b', '#7a8450', '#b5655a', '#d9a441', '#43291a', '#5b6f8c'],
+      pants: ['#2c1a10', '#3a4654', '#5a3a22', '#6b6f73', '#1f2a36']
+    };
+    // 固定的路人清單（避免每次重整都不同）：[車道, 方向, 秒數, 起始偏移%, 大小, 髮色, 上衣, 褲子, 提袋, 裙子]
+    const walkers = [
+      ['back',  'ltr', 26, .05, 54, 0, 1, 1, 0, 0],
+      ['back',  'rtl', 31, .40, 50, 4, 2, 3, 0, 0],
+      ['back',  'ltr', 29, .72, 52, 3, 4, 2, 1, 1],
+      ['back',  'rtl', 24, .88, 48, 1, 6, 4, 0, 0],
+      ['front', 'ltr', 17, .15, 76, 2, 0, 0, 1, 0],
+      ['front', 'rtl', 19, .55, 72, 3, 3, 2, 0, 1],
+      ['front', 'ltr', 21, .62, 80, 0, 5, 4, 0, 0],
+      ['front', 'rtl', 15, .92, 74, 1, 2, 1, 1, 0],
+    ];
+    walkers.forEach(([lane, dir, sec, off, size, h, t, p, bag, skirt]) => {
+      const el = document.createElement('div');
+      el.className = `walker ${dir}`;
+      const step = (sec / 40).toFixed(2);
+      Object.assign(el.style, {
+        width: `${size * 40 / 90}px`, height: `${size}px`,
+        bottom: lane === 'back' ? '22%' : '4%',
+        animationDuration: `${sec}s`, animationDelay: `${-sec * off}s`,
+        opacity: lane === 'back' ? .8 : 1
+      });
+      el.style.setProperty('--step', `${Math.min(.6, Math.max(.38, step))}s`);
+      el.innerHTML = person({ hair: C.hair[h], top: C.top[t], pants: C.pants[p], bag, skirt });
+      (lane === 'back' ? back : front).appendChild(el);
+    });
+    // 門口排隊的客人
+    [[-34, 0, 1, 2, 0], [-12, 1, 3, 0, 1], [10, 3, 4, 1, 0]].forEach(([dx, h, t, p, skirt], i) => {
+      const el = document.createElement('div');
+      el.className = 'waiter';
+      Object.assign(el.style, { width: '27px', height: '60px', bottom: '20%', left: `calc(50% + ${dx}px)` });
+      el.innerHTML = person({ hair: C.hair[h], top: C.top[t], pants: C.pants[p], skirt }).replace('class="bob"', `class="bob" style="animation-delay:${-i * .7}s"`);
+      back.appendChild(el);
+    });
+  }
+
   /* ---------- 初始化 ---------- */
   $('#year').textContent = new Date().getFullYear();
+  renderStreet();
   renderPopular();
   renderTabs(); renderMenu();
   renderGifts();
