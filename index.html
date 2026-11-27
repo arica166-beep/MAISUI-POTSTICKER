@@ -102,9 +102,15 @@
     .waiter .bob { animation: idle 2.4s ease-in-out infinite alternate; }
     @keyframes idle { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
     @media (max-width: 640px) { .street { height: 270px; } .street-shop { width: 230px; } .street-caption { top: 1rem; font-size: .7rem; } .street-caption b { font-size: 1rem; } }
-    @media (prefers-reduced-motion: reduce) {
-      .street *, .street *::before { animation-play-state: paused !important; }
-    }
+    .street.paused *, .street.paused *::before { animation-play-state: paused !important; }
+    .street-toggle { position: absolute; top: .75rem; right: .75rem; z-index: 5; display: inline-flex; align-items: center; gap: .35rem;
+      padding: .4rem .8rem; border-radius: 9999px; border: 1px solid rgba(67,41,26,.18); background: rgba(251,246,238,.85);
+      color: rgb(67 41 26); font-size: .75rem; font-weight: 500; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .street-toggle:hover { background: #fff; }
+    .street-toggle:focus-visible { outline: 3px solid rgba(229,119,42,.5); outline-offset: 2px; }
+    .street-toggle svg { width: .9rem; height: .9rem; }
+    .street-toggle .i-play { display: none; } .street.paused .street-toggle .i-play { display: block; } .street.paused .street-toggle .i-pause { display: none; }
+    @media (max-width: 640px) { .street-toggle { top: auto; bottom: .6rem; right: .6rem; } }
     /* 3D 街景（載入成功後取代 2D 版本） */
     .street-3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .8s ease; z-index: 1; }
     .street.is-3d { height: 440px; background: linear-gradient(#fbf6ee, #f4ebdd); }
@@ -227,6 +233,11 @@
          ============================================================ -->
     <section class="street" aria-label="店門口人來人往的街景動畫">
       <p class="street-caption">巷口的日常<b>人來人往，都為這一口金黃</b></p>
+      <button type="button" class="street-toggle" id="streetToggle" aria-pressed="false">
+        <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>
+        <span>暫停動畫</span>
+      </button>
       <svg class="street-shop" viewBox="0 0 300 150" aria-hidden="true">
         <g class="street-steam" fill="none" stroke="#c4a27f" stroke-width="3" stroke-linecap="round">
           <path d="M120 22 q-6 -8 0 -16 q6 -8 0 -16"/>
@@ -1384,6 +1395,12 @@
   /* ---------- 初始化 ---------- */
   $('#year').textContent = new Date().getFullYear();
   renderStreet();
+  $('#streetToggle')?.addEventListener('click', (e) => {
+    const sec = $('.street'), paused = sec.classList.toggle('paused');
+    e.currentTarget.setAttribute('aria-pressed', paused);
+    e.currentTarget.querySelector('span').textContent = paused ? '播放動畫' : '暫停動畫';
+    sec.dispatchEvent(new Event('street-toggle'));
+  });
   renderPopular();
   renderTabs(); renderMenu();
   renderGifts();
@@ -1732,7 +1749,7 @@
       camera.updateProjectionMatrix();
       populate();
     }
-    section.addEventListener('pointermove', e => {
+    if (!reduceMotion) section.addEventListener('pointermove', e => {
       const r = section.getBoundingClientRect(); pointerX = ((e.clientX - r.left) / r.width - .5) * 2;
     });
     section.addEventListener('pointerleave', () => pointerX = 0);
@@ -1803,7 +1820,7 @@
       // 相機（隨滑鼠輕微平移）
       camX += (pointerX * .9 - camX) * Math.min(1, dt * 2.5);
       const dist = camera.userData.dist;
-      camera.position.set(camX + Math.sin(elapsed * .15) * .25, 2.4 + dist * .17, look.z + dist);
+      camera.position.set(camX + (reduceMotion ? 0 : Math.sin(elapsed * .15) * .25), 2.4 + dist * .17, look.z + dist);
       camera.lookAt(look.x + camX * .3, look.y, look.z);
     }
 
@@ -1820,10 +1837,11 @@
       step(dt); renderer.render(scene, camera);
       requestAnimationFrame(loop);
     }
-    const start = () => { if (running || reduceMotion || !visible) return; running = true; last = performance.now(); requestAnimationFrame(loop); };
+    const start = () => { if (running || !visible || section.classList.contains('paused')) return; running = true; last = performance.now(); requestAnimationFrame(loop); };
     const stop = () => { running = false; };
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(section);
     document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    section.addEventListener('street-toggle', () => section.classList.contains('paused') ? stop() : start());
 
     renderer.render(scene, camera);
     section.classList.add('is-3d');
