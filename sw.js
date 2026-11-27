@@ -2,7 +2,7 @@
    - 網頁本身：網路優先，離線時改用快取（確保一上線就拿到最新版）
    - 圖示、字型、圖片、Three.js：快取優先，背景更新
    更新網站內容時不需要改這裡；若改了快取策略，請把 VERSION 加一。 */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const PAGE_CACHE = `maisui-page-${VERSION}`;
 const ASSET_CACHE = `maisui-assets-${VERSION}`;
 const PRECACHE = [
@@ -25,7 +25,8 @@ const ASSET_HOSTS = [
 const MAX_ASSETS = 120;
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(PAGE_CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  // cache: 'reload'：略過瀏覽器的 HTTP 快取，確保存到的是最新檔案
+  event.waitUntil(caches.open(PAGE_CACHE).then((c) => c.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -50,9 +51,10 @@ self.addEventListener('fetch', (event) => {
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        // cache: 'no-cache'：每次都向伺服器確認是否有新版（GitHub Pages 預設會讓瀏覽器快取 10 分鐘）
+        const res = await fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' });
         const cache = await caches.open(PAGE_CACHE);
-        cache.put('./index.html', res.clone());
+        if (res.ok) cache.put('./index.html', res.clone());
         return res;
       } catch {
         return (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
