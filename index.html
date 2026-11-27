@@ -63,6 +63,19 @@
     .booking-fab svg { width: 1.25rem; height: 1.25rem; }
     @media (max-width: 480px) { .booking-fab { right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); padding: .8rem 1.1rem; font-size: .9rem; } }
     @media (prefers-reduced-motion: reduce) { .booking-fab { transition: none; } .booking-fab:hover { transform: none; } }
+    /* Hero 右側海報卡片 */
+    .hero-grid { display: grid; gap: 2.5rem; align-items: center; }
+    .hero-poster { display: block; justify-self: center; width: min(100%, 340px); border-radius: 1.5rem; overflow: hidden;
+      border: 6px solid rgba(255,253,248,.12); background: rgba(255,253,248,.06);
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); transition: transform .3s ease, box-shadow .3s ease; }
+    .hero-poster img { display: block; width: 100%; height: auto; max-height: 72vh; object-fit: cover; object-position: top; }
+    .hero-poster:hover { transform: translateY(-4px); box-shadow: 0 36px 70px -20px rgba(0,0,0,.7); }
+    .hero-poster:focus-visible { outline: 3px solid rgba(229,119,42,.6); outline-offset: 4px; }
+    @media (min-width: 1024px) {
+      .hero-grid { grid-template-columns: minmax(0, 1fr) auto; gap: 3rem; }
+      .hero-poster { width: clamp(300px, 28vw, 400px); justify-self: end; align-self: end; }
+    }
+    @media (prefers-reduced-motion: reduce) { .hero-poster { transition: none; } .hero-poster:hover { transform: none; } }
     /* 街景動畫：人來人往 */
     .street { position: relative; height: 300px; overflow: hidden; background: linear-gradient(#fbf6ee 0%, #f4ebdd 72%, #e9dcc6 72%, #e9dcc6 76%, #c4a27f 76%, #b08b66 100%); }
     .street-caption { position: absolute; left: 50%; top: 1.25rem; transform: translateX(-50%); width: max-content; max-width: calc(100% - 2rem); text-align: center; font-family: "Noto Serif TC", serif; color: rgb(90 58 34); letter-spacing: .3em; font-size: .8rem; z-index: 4; }
@@ -160,12 +173,12 @@
          HERO
          ============================================================ -->
     <section class="relative flex min-h-[100svh] items-center overflow-hidden bg-wood-900">
-      <img src="https://i.postimg.cc/j2YmMLV1/Chat-GPT-Image-2026nian8yue9ri-xia-wu06-20-57.png"
-           alt="麥穗鍋貼所主視覺海報" class="absolute inset-0 h-full w-full object-cover opacity-70" onerror="this.remove()" />
+      <img src="https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=2000&q=80"
+           alt="剛起鍋的金黃煎餃" class="absolute inset-0 h-full w-full object-cover opacity-70" onerror="this.remove()" />
       <div class="absolute inset-0 bg-gradient-to-r from-wood-900/95 via-wood-900/70 to-wood-900/20"></div>
       <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-100 to-transparent"></div>
 
-      <div class="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-28">
+      <div class="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-28 hero-grid">
         <div class="max-w-2xl">
           <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-ember-300/40 bg-white/5 px-4 py-1.5 text-xs tracking-[.25em] text-ember-300 backdrop-blur">
             <i data-lucide="flame" class="h-3.5 w-3.5"></i>SINCE 1994 · 每日現包現煎
@@ -190,6 +203,11 @@
             <span class="flex items-center gap-1.5"><i data-lucide="truck" class="h-4 w-4"></i>全台冷凍宅配</span>
           </div>
         </div>
+
+        <!-- 右側海報卡片（點擊可開啟原圖） -->
+        <a href="https://i.postimg.cc/j2YmMLV1/Chat-GPT-Image-2026nian8yue9ri-xia-wu06-20-57.png" target="_blank" rel="noopener" class="hero-poster" aria-label="查看麥穗鍋貼所海報大圖">
+          <img src="https://i.postimg.cc/j2YmMLV1/Chat-GPT-Image-2026nian8yue9ri-xia-wu06-20-57.png" alt="麥穗鍋貼所菜單海報" onerror="this.closest('.hero-poster').remove()" />
+        </a>
       </div>
 
       <a href="#story" class="absolute bottom-10 left-1/2 -translate-x-1/2 text-wood-500 animate-bounce" aria-label="向下捲動">
